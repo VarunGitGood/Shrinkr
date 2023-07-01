@@ -67,7 +67,6 @@ func Login() {
 	login := GetLoginData()
 	state := login.State
 	fmt.Println("Click here to login using Google:\n", login.Url)
-
 	// creating a seperate go routine to handle the callback so as to not block the main thread
 	go func() {
 		http.HandleFunc("/shrinkr/callback", func(w http.ResponseWriter, r *http.Request) {
@@ -88,16 +87,15 @@ func HandleCallback(
 	r *http.Request,
 	state string,
 	done chan bool,
-) error {
+) {
 	if r.URL.Query().Get("state") != state {
-		return fmt.Errorf("invalid oauth state")
+		http.Error(w, "Invalid OAuth state", http.StatusBadRequest)
+		return
 	}
-	// unblock the Login() call
-	fmt.Fprintf(w, "Login Successful!")
+	// Unblock the Login() call
 	fmt.Println("Login Successful!")
+	http.ServeFile(w, r, "cmd/public/template.html")
 	done <- true
-	// return html
-	return nil
 }
 
 type loginDTO struct {
