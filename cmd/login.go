@@ -1,16 +1,16 @@
 /*
 Copyright © 2023 Varun Singh varun7singh10@gmail.com
-
 */
 package cmd
 
 import (
 	"encoding/json"
 	"fmt"
-	// "github.com/gofiber/fiber/v2"
-	"github.com/spf13/cobra"
+
 	"io/ioutil"
 	"net/http"
+
+	"github.com/spf13/cobra"
 )
 
 // loginCmd represents the login command
@@ -69,16 +69,26 @@ func Login() {
 	fmt.Println("Click here to login using Google:\n", login.Url)
 	// creating a seperate go routine to handle the callback so as to not block the main thread
 	go func() {
+		// Handlers
 		http.HandleFunc("/shrinkr/callback", func(w http.ResponseWriter, r *http.Request) {
 			HandleCallback(w, r, state, done)
 		})
 
-		if err := http.ListenAndServe(":9000", nil); err != nil {
+		http.HandleFunc("/shrinkr/test", func(w http.ResponseWriter, r *http.Request) {
+			fmt.Println("Test")
+		})
+
+		server := &http.Server{Addr: ":9000"}
+
+		if err := server.ListenAndServe(); err != nil {
 			fmt.Println(err)
-			done <- true // Signal completion in case of error
+		}
+		// Wait for completion or other termination condition
+		<-done
+		if err := server.Close(); err != nil {
+			fmt.Println("Error shutting down the server:", err)
 		}
 	}()
-
 	<-done
 }
 
@@ -89,12 +99,11 @@ func HandleCallback(
 	done chan bool,
 ) {
 	if r.URL.Query().Get("state") != state {
-		http.Error(w, "Invalid OAuth state", http.StatusBadRequest)
 		return
 	}
 	// Unblock the Login() call
 	fmt.Println("Login Successful!")
-	http.ServeFile(w, r, "cmd/public/template.html")
+	http.ServeFile(w, r, "cmd/public/check.html")
 	done <- true
 }
 
