@@ -6,6 +6,7 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
+	"shrinkr/util"
 
 	"io/ioutil"
 	"net/http"
@@ -19,9 +20,23 @@ var loginCmd = &cobra.Command{
 	Short: "Login to your account using Google OAuth",
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("Starting login process...")
 		Login()
 	},
+}
+
+const (
+	loginURL = "http://127.0.0.1:3000/shrinkr/login"
+	tokenURL = "http://127.0.0.1:3000/shrinkr/token"
+
+)
+
+type loginDTO struct {
+	Url   string `json:"url"`
+	State string `json:"state"`
+}
+
+type tokenDTO struct {
+	Token string `json:"token"`
 }
 
 func init() {
@@ -40,20 +55,17 @@ func init() {
 
 func GetLoginData() *loginDTO {
 	client := &http.Client{}
-	req, err := http.NewRequest("GET", "http://127.0.0.1:3000/shrinkr/login", nil)
+	req, err := http.NewRequest("GET", loginURL , nil)
 	req.Header.Set("Content-Type", "application/json")
 	resp, err := client.Do(req)
 	if err != nil {
 		fmt.Println(err)
 	}
-
 	defer resp.Body.Close()
-
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		fmt.Println(err)
 	}
-
 	var login loginDTO
 	err = json.Unmarshal(body, &login)
 	if err != nil {
@@ -66,20 +78,21 @@ func Login() {
 	done := make(chan bool)
 	login := GetLoginData()
 	state := login.State
-	fmt.Println("Click here to login using Google:\n", login.Url)
+
+	s := util.Spinner("Click on the link above to login ")
+	s.Start()
+	fmt.Println(login.Url + "\n")
+
 	// creating a seperate go routine to handle the callback so as to not block the main thread
 	go func() {
 		// Handlers
 		http.HandleFunc("/shrinkr/callback", func(w http.ResponseWriter, r *http.Request) {
 			HandleCallback(w, r, state, done)
 		})
-
 		http.HandleFunc("/shrinkr/test", func(w http.ResponseWriter, r *http.Request) {
 			fmt.Println("Test")
 		})
-
 		server := &http.Server{Addr: ":9000"}
-
 		if err := server.ListenAndServe(); err != nil {
 			fmt.Println(err)
 		}
@@ -90,6 +103,15 @@ func Login() {
 		}
 	}()
 	<-done
+	s.Stop()
+}
+
+func WriteToFile(token string) {
+	// store the token in the .env file for future use with varible name TOKEN
+	err := ioutil.WriteFile("secrets.env", []byte("TOKEN="+token), 0644)
+	if err != nil {
+		fmt.Println(err)
+	}
 }
 
 func HandleCallback(
@@ -98,16 +120,29 @@ func HandleCallback(
 	state string,
 	done chan bool,
 ) {
+	// Check the state that was sent back
 	if r.URL.Query().Get("state") != state {
 		return
 	}
-	// Unblock the Login() call
+	client := &http.Client{}
+	req, err := http.NewRequest("GET", tokenURL, nil)
+	req.Header.Set("Content-Type", "application/json")
+	q := req.URL.Query()
+	q.Add("code", r.URL.Query().Get("code"))
+	req.URL.RawQuery = q.Encode()
+	resp, err := client.Do(req)
+	if err != nil {
+		fmt.Println(err)
+	}
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	var token tokenDTO
+	err = json.Unmarshal(body, &token)
+	WriteToFile(token.Token)
 	fmt.Println("Login Successful!")
 	http.ServeFile(w, r, "cmd/public/check.html")
+	// Unblock the Login() call
 	done <- true
 }
 
-type loginDTO struct {
-	Url   string `json:"url"`
-	State string `json:"state"`
-}
+
