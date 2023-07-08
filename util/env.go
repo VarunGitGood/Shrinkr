@@ -15,3 +15,7 @@ func Env(key string) string {
 	}
 	return os.Getenv(key)
 }
+
+func GetToken() string {
+	return Env("TOKEN")
+}

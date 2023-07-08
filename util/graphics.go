@@ -15,3 +15,17 @@ func Spinner(prefix string) *spinner.Spinner {
 	return s
 }
 
+func Text(text string) string {
+	blue := color.New(color.FgCyan, color.Bold)
+	return blue.Sprint(text)
+}
+
+func PTextCYAN(text string) {
+	blue := color.New(color.FgCyan, color.Bold)
+	blue.Println(text)
+}
+
+func PTextGREEN(text string) {
+	green := color.New(color.FgGreen, color.Bold)
+	green.Println(text)
+}

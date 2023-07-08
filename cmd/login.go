@@ -27,7 +27,6 @@ var loginCmd = &cobra.Command{
 const (
 	loginURL = "http://127.0.0.1:3000/shrinkr/login"
 	tokenURL = "http://127.0.0.1:3000/shrinkr/token"
-
 )
 
 type loginDTO struct {
@@ -37,13 +36,13 @@ type loginDTO struct {
 
 type tokenDTO struct {
 	Token string `json:"token"`
+	Name  string `json:"name"`
 }
 
 func init() {
 	rootCmd.AddCommand(loginCmd)
 
 	// Here you will define your flags and configuration settings.
-
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
 	// loginCmd.PersistentFlags().String("foo", "", "A help for foo")
@@ -55,7 +54,7 @@ func init() {
 
 func GetLoginData() *loginDTO {
 	client := &http.Client{}
-	req, err := http.NewRequest("GET", loginURL , nil)
+	req, err := http.NewRequest("GET", loginURL, nil)
 	req.Header.Set("Content-Type", "application/json")
 	resp, err := client.Do(req)
 	if err != nil {
@@ -79,9 +78,10 @@ func Login() {
 	login := GetLoginData()
 	state := login.State
 
-	s := util.Spinner("Click on the link above to login ")
+	s := util.Spinner("Click on the link above to login")
 	s.Start()
-	fmt.Println(login.Url + "\n")
+	fmt.Print("\n")
+	util.PTextGREEN(login.Url + "\n")
 
 	// creating a seperate go routine to handle the callback so as to not block the main thread
 	go func() {
@@ -96,7 +96,6 @@ func Login() {
 		if err := server.ListenAndServe(); err != nil {
 			fmt.Println(err)
 		}
-		// Wait for completion or other termination condition
 		<-done
 		if err := server.Close(); err != nil {
 			fmt.Println("Error shutting down the server:", err)
@@ -136,13 +135,12 @@ func HandleCallback(
 	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
-	var token tokenDTO
-	err = json.Unmarshal(body, &token)
-	WriteToFile(token.Token)
-	fmt.Println("Login Successful!")
+	var tokenData tokenDTO
+	err = json.Unmarshal(body, &tokenData)
+	fmt.Println(tokenData.Token)
+	WriteToFile(tokenData.Token)
+	fmt.Println("\nLogged in as " + util.Text(tokenData.Name) + "\n")
 	http.ServeFile(w, r, "cmd/public/check.html")
 	// Unblock the Login() call
 	done <- true
 }
-
-

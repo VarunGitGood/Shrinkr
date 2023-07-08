@@ -6,9 +6,11 @@ package cmd
 
 import (
 	"os"
+
 	"github.com/spf13/cobra"
 )
 
+// init a http client to make requests to the shrinkr server as it will be used in multiple commands
 
 
 // rootCmd represents the base command when called without any subcommands
