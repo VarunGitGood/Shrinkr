@@ -9,7 +9,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"net/http"
 	"shrinkr/util"
 
 	"github.com/AlecAivazis/survey/v2"
@@ -17,7 +16,8 @@ import (
 )
 
 const (
-	addURL = "http://127.0.0.1:3000/shrinkr/links/addurl"
+	addURL  = "http://127.0.0.1:3000/shrinkr/links/addurl"
+	baseURL = "http://127.0.0.1:3000/shrinkr/"
 )
 
 var qs = []*survey.Question{
@@ -51,11 +51,14 @@ var qs = []*survey.Question{
 var addCmd = &cobra.Command{
 	Use:   "add",
 	Short: "Add a new URL to shrinkr to be shortened",
-	Long: `Add a new URL to shrinkr to be shortened,
-	also can specify the expiration time for the shortened URL
+	Long: `Add a new URL to shrinkr to be shortened,also can specify the expiration time for the shortened URL
 	along with password protection and Expiration Clicks`,
 	Run: func(cmd *cobra.Command, args []string) {
-		Add()
+		if(util.Authenticated()){
+			Add()
+		} else {
+			util.PTextCYAN("Please login first")
+		}
 	},
 }
 
@@ -70,7 +73,6 @@ func Add() {
 		Expiration  int    `json:"expiration" survey:"expiration"`
 		ShortURL    string `json:"shortURL" survey:"shortURL"`
 	}{}
-	baseURL := "http://127.0.0.1:3000/shrinkr/"
 	err := survey.Ask(qs, &answers)
 	if err != nil {
 		fmt.Println(err.Error())
@@ -79,11 +81,7 @@ func Add() {
 	shortURL := util.GenerateShortURL()
 	answers.ShortURL = shortURL
 	answersJSON, err := json.Marshal(answers)
-	client := &http.Client{}
-	req, err := http.NewRequest("POST", addURL, bytes.NewBuffer(answersJSON))
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Bearer "+util.GetToken())
-	resp, err := client.Do(req)
+	resp, err := util.Post(addURL, bytes.NewReader(answersJSON), true)
 	if err != nil {
 		fmt.Println(err)
 		return

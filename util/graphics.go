@@ -29,3 +29,8 @@ func PTextGREEN(text string) {
 	green := color.New(color.FgGreen, color.Bold)
 	green.Println(text)
 }
+
+func PTextRED(text string) {
+	red := color.New(color.FgRed, color.Bold)
+	red.Println(text)
+}

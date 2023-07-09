@@ -14,7 +14,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// loginCmd represents the login command
 var loginCmd = &cobra.Command{
 	Use:   "login",
 	Short: "Login to your account using Google OAuth",
@@ -41,22 +40,10 @@ type tokenDTO struct {
 
 func init() {
 	rootCmd.AddCommand(loginCmd)
-
-	// Here you will define your flags and configuration settings.
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// loginCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// loginCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
 func GetLoginData() *loginDTO {
-	client := &http.Client{}
-	req, err := http.NewRequest("GET", loginURL, nil)
-	req.Header.Set("Content-Type", "application/json")
-	resp, err := client.Do(req)
+	resp, err := util.Get(loginURL, "", false)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -83,14 +70,9 @@ func Login() {
 	fmt.Print("\n")
 	util.PTextGREEN(login.Url + "\n")
 
-	// creating a seperate go routine to handle the callback so as to not block the main thread
 	go func() {
-		// Handlers
 		http.HandleFunc("/shrinkr/callback", func(w http.ResponseWriter, r *http.Request) {
 			HandleCallback(w, r, state, done)
-		})
-		http.HandleFunc("/shrinkr/test", func(w http.ResponseWriter, r *http.Request) {
-			fmt.Println("Test")
 		})
 		server := &http.Server{Addr: ":9000"}
 		if err := server.ListenAndServe(); err != nil {
@@ -106,7 +88,6 @@ func Login() {
 }
 
 func WriteToFile(token string) {
-	// store the token in the .env file for future use with varible name TOKEN
 	err := ioutil.WriteFile("secrets.env", []byte("TOKEN="+token), 0644)
 	if err != nil {
 		fmt.Println(err)
@@ -119,17 +100,10 @@ func HandleCallback(
 	state string,
 	done chan bool,
 ) {
-	// Check the state that was sent back
 	if r.URL.Query().Get("state") != state {
 		return
 	}
-	client := &http.Client{}
-	req, err := http.NewRequest("GET", tokenURL, nil)
-	req.Header.Set("Content-Type", "application/json")
-	q := req.URL.Query()
-	q.Add("code", r.URL.Query().Get("code"))
-	req.URL.RawQuery = q.Encode()
-	resp, err := client.Do(req)
+	resp, err := util.Get(tokenURL, "code="+r.URL.Query().Get("code"), false)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -137,7 +111,6 @@ func HandleCallback(
 	body, err := ioutil.ReadAll(resp.Body)
 	var tokenData tokenDTO
 	err = json.Unmarshal(body, &tokenData)
-	fmt.Println(tokenData.Token)
 	WriteToFile(tokenData.Token)
 	fmt.Println("\nLogged in as " + util.Text(tokenData.Name) + "\n")
 	http.ServeFile(w, r, "cmd/public/check.html")
