@@ -40,7 +40,7 @@ func Delete(url string, auth bool) (*http.Response, error) {
 
 func Authenticated() bool {
 	client := http.Client{}
-	req, _ := http.NewRequest("GET", "http://127.0.0.1:3000/shrinkr/user/me", nil)
+	req, _ := http.NewRequest("GET", "https://shrinkr-da1u.onrender.com/shrinkr/user/me", nil)
 	req.Header.Set("Authorization", "Bearer "+GetToken())
 	resp, _ := client.Do(req)
 	if resp.StatusCode == 200 {

@@ -24,8 +24,8 @@ var loginCmd = &cobra.Command{
 }
 
 const (
-	loginURL = "http://127.0.0.1:3000/shrinkr/login"
-	tokenURL = "http://127.0.0.1:3000/shrinkr/token"
+	loginURL = "https://shrinkr-da1u.onrender.com/shrinkr/login"
+	tokenURL = "https://shrinkr-da1u.onrender.com/shrinkr/token"
 )
 
 type loginDTO struct {

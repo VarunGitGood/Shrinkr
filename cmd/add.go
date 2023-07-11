@@ -16,8 +16,8 @@ import (
 )
 
 const (
-	addURL  = "http://127.0.0.1:3000/shrinkr/links/addurl"
-	baseURL = "http://127.0.0.1:3000/shrinkr/"
+	addURL  = "https://shrinkr-da1u.onrender.com/shrinkr/links/addurl"
+	baseURL = "https://shrinkr-da1u.onrender.com/shrinkr/"
 )
 
 var qs = []*survey.Question{
@@ -54,7 +54,7 @@ var addCmd = &cobra.Command{
 	Long: `Add a new URL to shrinkr to be shortened,also can specify the expiration time for the shortened URL
 	along with password protection and Expiration Clicks`,
 	Run: func(cmd *cobra.Command, args []string) {
-		if(util.Authenticated()){
+		if util.Authenticated() {
 			Add()
 		} else {
 			util.PTextCYAN("Please login first")

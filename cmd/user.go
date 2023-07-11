@@ -14,9 +14,9 @@ import (
 )
 
 const (
-	allURLs = "http://127.0.0.1:3000/shrinkr/links/mappings"
-	linkURL = "http://127.0.0.1:3000/shrinkr/links/"
-	userURL = "http://127.0.0.1:3000/shrinkr/user/info"
+	allURLs = "https://shrinkr-da1u.onrender.com/shrinkr/links/mappings"
+	linkURL = "https://shrinkr-da1u.onrender.com/shrinkr/links/"
+	userURL = "https://shrinkr-da1u.onrender.com/shrinkr/user/info"
 )
 
 // userCmd represents the user command
