@@ -7,7 +7,7 @@ import (
 	"github.com/joho/godotenv"
 )
 
-func Env(key string) string {
+func SecretsEnv(key string) string {
 	err := godotenv.Load("secrets.env")
 
 	if err != nil {
@@ -17,5 +17,23 @@ func Env(key string) string {
 }
 
 func GetToken() string {
-	return Env("TOKEN")
+	return SecretsEnv("TOKEN")
+}
+
+func UrlEnv(key string) string {
+	err := godotenv.Load("urls.env")
+	if err != nil {
+		fmt.Print(err)
+	}
+	var url string
+	if os.Getenv("ENV") == "dev" {
+		url = key + "dev"
+	} else {
+		url = key + "prod"
+	}
+	return os.Getenv(url)
+}
+
+func GetURL(key string) string {
+	return UrlEnv(key)
 }

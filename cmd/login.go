@@ -23,9 +23,9 @@ var loginCmd = &cobra.Command{
 	},
 }
 
-const (
-	loginURL = "https://shrinkr-da1u.onrender.com/shrinkr/login"
-	tokenURL = "https://shrinkr-da1u.onrender.com/shrinkr/token"
+var (
+	loginURL = util.GetURL("loginURL")
+	tokenURL = util.GetURL("tokenURL")
 )
 
 type loginDTO struct {
