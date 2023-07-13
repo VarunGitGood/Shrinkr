@@ -6,6 +6,7 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
+	"runtime"
 	"shrinkr/util"
 
 	"io/ioutil"
@@ -64,7 +65,9 @@ func Login() {
 	done := make(chan bool)
 	login := GetLoginData()
 	state := login.State
-
+	if runtime.GOOS == "linux" {
+		util.OpenBrowser(login.Url)
+	} 
 	s := util.Spinner("Click on the link above to login")
 	s.Start()
 	fmt.Print("\n")

@@ -1,12 +1,14 @@
 package util
 
 import (
-	"github.com/google/uuid"
+	"os/exec"
 	"strings"
+
+	"github.com/google/uuid"
 )
 
 func GenerateShortURL() string {
-	
+
 	uuid := uuid.New()
 	strings.Replace(uuid.String(), "-", "", -1)
 	return uuid.String()[:8]
@@ -21,4 +23,7 @@ func IsInt(s string) bool {
 	return true
 }
 
-
+func OpenBrowser(url string) {
+	cmd := exec.Command("xdg-open", url)
+	cmd.Run()
+}
