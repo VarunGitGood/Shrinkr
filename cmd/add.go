@@ -18,6 +18,7 @@ import (
 var (
 	addURL   = util.GetURL("addURL")
 	baseURL  = util.GetURL("baseURL")
+	checkURL = util.GetURL("checkURL")
 	isCustom bool
 )
 
@@ -26,6 +27,15 @@ var cqs = []*survey.Question{
 		Name: "shortURL",
 		Prompt: &survey.Input{Message: "Enter the short URL: ",
 			Help: "Leave blank for a random short URL"},
+		Validate: func(val interface{}) error {
+			if val.(string) == "" {
+				return nil
+			}
+			if !CheckURL(val.(string)) {
+				return errors.New("That short URL is already taken")
+			}
+			return nil
+		},
 	},
 	{
 		Name:     "longURL",
@@ -96,6 +106,26 @@ var addCmd = &cobra.Command{
 			util.PTextCYAN("Please login first")
 		}
 	},
+}
+
+func CheckURL(url string) bool {
+	var Response struct {
+		status string `json:"status"`
+	}
+	resp, err := util.Get(checkURL+url, url, false)
+	if err != nil {
+		fmt.Println(err)
+	}
+	defer resp.Body.Close()
+	err = json.NewDecoder(resp.Body).Decode(&Response)
+	if err != nil {
+		fmt.Println(err)
+	}
+	if Response.status == "success" {
+		return true
+	} else {
+		return false
+	}
 }
 
 func init() {
