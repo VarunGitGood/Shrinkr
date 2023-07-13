@@ -65,9 +65,8 @@ func Login() {
 	done := make(chan bool)
 	login := GetLoginData()
 	state := login.State
-	if runtime.GOOS == "linux" {
-		util.OpenBrowser(login.Url)
-	} 
+	util.OpenBrowser(login.Url, runtime.GOOS)
+
 	s := util.Spinner("Click on the link above to login")
 	s.Start()
 	fmt.Print("\n")
