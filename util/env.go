@@ -7,6 +7,22 @@ import (
 	"github.com/joho/godotenv"
 )
 
+const env = "prod"
+
+// create a key value map for urls
+var URLS = map[string]string{
+	"checkURL_prod": "https://shrinkr-da1u.onrender.com/shrinkr/links/check/",
+	"addURL_prod":   "https://shrinkr-da1u.onrender.com/shrinkr/links/addurl",
+	"baseURL_prod":  "https://shrinkr-da1u.onrender.com/shrinkr/",
+	"loginURL_prod": "https://shrinkr-da1u.onrender.com/shrinkr/login",
+	"tokenURL_prod": "https://shrinkr-da1u.onrender.com/shrinkr/token",
+	"checkURL_dev":  "http://localhost:8080/shrinkr/links/check/",
+	"addURL_dev":    "http://localhost:8080/shrinkr/links/addurl",
+	"baseURL_dev":   "http://localhost:8080/shrinkr/",
+	"loginURL_dev":  "http://localhost:8080/shrinkr/login",
+	"tokenURL_dev":  "http://localhost:8080/shrinkr/token",
+}
+
 func SecretsEnv(key string) string {
 	err := godotenv.Load("secrets.env")
 
@@ -20,20 +36,13 @@ func GetToken() string {
 	return SecretsEnv("TOKEN")
 }
 
-func UrlEnv(key string) string {
-	err := godotenv.Load("urls.env")
-	if err != nil {
-		fmt.Print(err)
-	}
-	var url string
-	if os.Getenv("ENV") == "dev" {
-		url = key + "dev"
-	} else {
-		url = key + "prod"
-	}
-	return os.Getenv(url)
-}
-
 func GetURL(key string) string {
-	return UrlEnv(key)
+	flag := ""
+	if env == "dev" {
+		flag = flag + "_dev"
+	} else {
+		flag = flag + "_prod"
+	}
+	url := URLS[key+flag]
+	return url
 }
